@@ -1,12 +1,24 @@
 const express = require("express");
-const { register, login } = require("../controllers/authController");
+const { register, login, getCurrentUser } = require("../controllers/authController");
+const { registerValidation, loginValidation } = require("../middleware/validation");
+const { authRequired } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-//Register new user
-router.post("/register", register);
+/**
+ * @swagger
+ * tags:
+ *   name: Authentication
+ *   description: User authentication and authorization
+ */
 
-//Login
-router.post("/login", login);
+// Register new user
+router.post("/register", registerValidation, register);
+
+// Login
+router.post("/login", loginValidation, login);
+
+// Get current user
+router.get("/me", authRequired, getCurrentUser);
 
 module.exports = router;

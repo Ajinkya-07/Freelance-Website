@@ -1,5 +1,6 @@
 const Project = require('../models/Project');
 const ProjectFile = require('../models/ProjectFile');
+const { logActivity } = require('./projectController');
 const path = require('path');
 const fs = require('fs');
 
@@ -46,6 +47,12 @@ async function uploadFile(req, res) {
       fileName: file.originalname,
       filePath: file.path
     });
+
+    // Log the file upload activity
+    logActivity(projectId, req.user.id, 'file_uploaded',
+      `${file_type === 'final' ? 'Final' : 'Draft'} file uploaded: ${file.originalname}`,
+      { fileId: savedFile.id, fileName: file.originalname, fileType: file_type }
+    );
 
     return res.status(201).json({
       message: 'File uploaded successfully 🎉',

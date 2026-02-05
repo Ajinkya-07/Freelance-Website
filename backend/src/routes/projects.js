@@ -4,14 +4,44 @@ const {
   acceptProposal,
   getMyProjects,
   getProjectById,
+  updateProjectStatus,
+  submitForReview,
+  requestRevision,
+  completeProject,
+  cancelProject,
+  putOnHold,
+  resumeProject,
+  getProjectActivity,
+  getMyRecentActivity,
+  getProjectProgress,
 } = require("../controllers/projectController");
 
 const router = express.Router();
 
-router.get("/", authRequired, getMyProjects);
+// All routes require authentication
+router.use(authRequired);
 
-router.get("/:id", authRequired, getProjectById);
+// Activity routes (must be before :id routes)
+router.get("/activity/recent", getMyRecentActivity);
 
-router.post("/accept/:proposalId", authRequired, acceptProposal);
+// Project list
+router.get("/", getMyProjects);
+
+// Create project from proposal
+router.post("/accept/:proposalId", acceptProposal);
+
+// Project details and management
+router.get("/:id", getProjectById);
+router.get("/:id/activity", getProjectActivity);
+router.get("/:id/progress", getProjectProgress);
+
+// Status management
+router.put("/:id/status", updateProjectStatus);
+router.post("/:id/submit-for-review", submitForReview);
+router.post("/:id/request-revision", requestRevision);
+router.post("/:id/complete", completeProject);
+router.post("/:id/cancel", cancelProject);
+router.post("/:id/hold", putOnHold);
+router.post("/:id/resume", resumeProject);
 
 module.exports = router;
