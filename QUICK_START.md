@@ -1,6 +1,6 @@
-# 🚀 Quick Start Guide - EditConnect
+# 🚀 Quick Start Guide - EditFlow
 
-Get EditConnect up and running in 5 minutes!
+Get EditFlow up and running in 5 minutes!
 
 ## Prerequisites Check ✅
 
@@ -303,13 +303,13 @@ npm run build
 - 📖 **Documentation**: See README.md in root, backend, frontend
 - 🐛 **Issues**: Check ENHANCEMENTS.md troubleshooting
 - 💬 **Support**: Create GitHub issue
-- 📧 **Email**: support@editconnect.com
+- 📧 **Email**: support@EditFlow.com
 
 ---
 
 ## ✅ You're All Set!
 
-Your EditConnect platform is now running professionally with:
+Your EditFlow platform is now running professionally with:
 - ✅ Secure authentication
 - ✅ API documentation
 - ✅ Professional logging

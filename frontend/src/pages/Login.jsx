@@ -38,7 +38,7 @@ export default function Login() {
     <div style={styles.page}>
       <div style={styles.card}>
         <div style={styles.logo}>
-          <h1 style={styles.logoText}>EditConnect</h1>
+          <h1 style={styles.logoText}>EditFlow</h1>
           <p style={styles.logoSubtext}>Professional Freelance Marketplace</p>
         </div>
 

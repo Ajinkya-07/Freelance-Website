@@ -1,4 +1,4 @@
-# EditConnect Backend
+# EditFlow Backend
 FROM node:18-alpine
 
 # Set working directory

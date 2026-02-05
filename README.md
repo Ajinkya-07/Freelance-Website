@@ -1,4 +1,4 @@
-# 🎬 EditConnect - Professional Freelance Marketplace
+# 🎬 EditFlow - Professional Freelance Marketplace
 
 <div align="center">
 
@@ -17,7 +17,7 @@
 
 ## 📖 Overview
 
-EditConnect is a professional freelance marketplace specifically designed for the video editing and content creation industry. It facilitates seamless collaboration between clients who need editing services and talented editors looking for opportunities.
+EditFlow is a professional freelance marketplace specifically designed for the video editing and content creation industry. It facilitates seamless collaboration between clients who need editing services and talented editors looking for opportunities.
 
 ### 🎯 Key Highlights
 
@@ -62,7 +62,7 @@ EditConnect is a professional freelance marketplace specifically designed for th
 ## 🏗️ Architecture
 
 ```
-EditConnect/
+EditFlow/
 │
 ├── backend/                 # Express.js REST API
 │   ├── src/
@@ -316,11 +316,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 👥 Team & Support
 
 ### Contact
-- **Email**: support@editconnect.com
+- **Email**: support@EditFlow.com
 - **GitHub Issues**: [Report a bug or request a feature]
 
 ### Contributors
-Built with ❤️ by the EditConnect Team
+Built with ❤️ by the EditFlow Team
 
 ---
 
@@ -351,7 +351,7 @@ Interactive Swagger UI for API exploration
 
 <div align="center">
 
-**[⬆ Back to Top](#-editconnect---professional-freelance-marketplace)**
+**[⬆ Back to Top](#-EditFlow---professional-freelance-marketplace)**
 
 Made with ❤️ and ☕
 

@@ -288,8 +288,9 @@ const completeProject = asyncHandler(async (req, res) => {
     throw new ForbiddenError("Only the client can mark the project as complete");
   }
 
-  if (project.status !== 'under_review') {
-    throw new ValidationError("Can only complete project when it is under review");
+  // Allow completion from under_review or revision_requested status
+  if (project.status !== 'under_review' && project.status !== 'revision_requested') {
+    throw new ValidationError("Can only complete project when it is under review or revision requested");
   }
 
   const updatedProject = Project.complete(id);
@@ -524,8 +525,6 @@ module.exports = {
   requestRevision,
   completeProject,
   cancelProject,
-  putOnHold,
-  resumeProject,
   getProjectActivity,
   getMyRecentActivity,
   getProjectProgress,

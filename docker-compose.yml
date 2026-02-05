@@ -5,7 +5,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: editconnect-backend
+    container_name: EditFlow-backend
     restart: unless-stopped
     ports:
       - "4000:4000"
@@ -22,7 +22,7 @@ services:
       - backend-logs:/app/logs
       - backend-uploads:/app/uploads
     networks:
-      - editconnect-network
+      - EditFlow-network
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4000/health"]
       interval: 30s
@@ -34,14 +34,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: editconnect-frontend
+    container_name: EditFlow-frontend
     restart: unless-stopped
     ports:
       - "3000:80"
     depends_on:
       - backend
     networks:
-      - editconnect-network
+      - EditFlow-network
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
@@ -49,7 +49,7 @@ services:
       retries: 3
 
 networks:
-  editconnect-network:
+  EditFlow-network:
     driver: bridge
 
 volumes:

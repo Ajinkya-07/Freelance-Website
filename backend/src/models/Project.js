@@ -5,16 +5,15 @@ const db = require('../config/db');
  * in_progress → under_review → revision_requested → under_review → completed
  *            → cancelled (can happen from any status)
  * 
- * Valid statuses: in_progress, under_review, revision_requested, completed, cancelled, on_hold
+ * Valid statuses: in_progress, under_review, revision_requested, completed, cancelled
  */
 
-const VALID_STATUSES = ['in_progress', 'under_review', 'revision_requested', 'completed', 'cancelled', 'on_hold'];
+const VALID_STATUSES = ['in_progress', 'under_review', 'revision_requested', 'completed', 'cancelled'];
 
 const STATUS_TRANSITIONS = {
-  'in_progress': ['under_review', 'on_hold', 'cancelled'],
+  'in_progress': ['under_review', 'cancelled'],
   'under_review': ['revision_requested', 'completed', 'cancelled'],
-  'revision_requested': ['under_review', 'on_hold', 'cancelled'],
-  'on_hold': ['in_progress', 'cancelled'],
+  'revision_requested': ['under_review', 'completed', 'cancelled'],
   'completed': [], // Terminal state
   'cancelled': []  // Terminal state
 };

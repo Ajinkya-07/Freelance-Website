@@ -12,11 +12,12 @@ const reviewRoutes = require('./reviews');
 const milestoneRoutes = require('./milestones');
 const analyticsRoutes = require('./analytics');
 const adminRoutes = require('./admin');
+const notificationRoutes = require('./notifications');
 
 router.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    message: "EditConnect API root is working ✅",
+    message: "EditFlow API root is working ✅",
     timestamp: new Date().toISOString(),
   });
 });
@@ -32,6 +33,7 @@ router.use('/reviews', reviewRoutes);
 router.use('/milestones', milestoneRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/admin', adminRoutes);
+router.use('/notifications', notificationRoutes);
 
 // Protected route to get current user
 router.get("/me", authRequired, (req, res) => {

@@ -2,8 +2,8 @@
 const Database = require("better-sqlite3");
 const path = require("path");
 
-// DB file will be created in project root as editconnect.db
-const dbPath = path.join(__dirname, "../../editconnect.db");
+// DB file will be created in project root as EditFlow.db
+const dbPath = path.join(__dirname, "../../EditFlow.db");
 
 const db = new Database(dbPath);
 
@@ -188,6 +188,23 @@ db.exec(`
   -- Create index for faster activity queries
   CREATE INDEX IF NOT EXISTS idx_project_activities_project_id ON project_activities(project_id);
   CREATE INDEX IF NOT EXISTS idx_project_activities_created_at ON project_activities(created_at);
+
+  -- Notifications table
+  CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    reference_type TEXT,
+    reference_id INTEGER,
+    is_read INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+  CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
   
 `);
 
@@ -200,6 +217,8 @@ const migrations = [
   { table: 'projects', column: 'completed_at', sql: "ALTER TABLE projects ADD COLUMN completed_at DATETIME" },
   { table: 'projects', column: 'cancelled_at', sql: "ALTER TABLE projects ADD COLUMN cancelled_at DATETIME" },
   { table: 'projects', column: 'updated_at', sql: "ALTER TABLE projects ADD COLUMN updated_at DATETIME" },
+  { table: 'jobs', column: 'target_editor_id', sql: "ALTER TABLE jobs ADD COLUMN target_editor_id INTEGER REFERENCES users(id)" },
+  { table: 'jobs', column: 'is_private', sql: "ALTER TABLE jobs ADD COLUMN is_private INTEGER DEFAULT 0" },
 ];
 
 migrations.forEach(({ table, column, sql }) => {
@@ -217,5 +236,42 @@ migrations.forEach(({ table, column, sql }) => {
     console.log(`Migration note: ${column} - ${err.message}`);
   }
 });
+
+// Migration: Update project_files CHECK constraint to allow client file types
+try {
+  // Check if the table has old constraint (only draft/final)
+  const oldSchema = db.prepare("SELECT sql FROM sqlite_master WHERE name = 'project_files'").get();
+  if (oldSchema && oldSchema.sql && !oldSchema.sql.includes('raw')) {
+    console.log('Migrating project_files table to support client file types...');
+    
+    // Rename old table
+    db.exec('ALTER TABLE project_files RENAME TO project_files_old');
+    
+    // Create new table with expanded file types
+    db.exec(`
+      CREATE TABLE project_files (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        uploaded_by INTEGER NOT NULL,
+        file_type TEXT CHECK (file_type IN ('draft', 'final', 'raw', 'source', 'reference')) NOT NULL,
+        file_name TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects(id),
+        FOREIGN KEY (uploaded_by) REFERENCES users(id)
+      )
+    `);
+    
+    // Copy data from old table
+    db.exec('INSERT INTO project_files SELECT * FROM project_files_old');
+    
+    // Drop old table
+    db.exec('DROP TABLE project_files_old');
+    
+    console.log('Migration: project_files table updated with new file types');
+  }
+} catch (err) {
+  console.log('project_files migration note:', err.message);
+}
 
 module.exports = db;

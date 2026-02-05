@@ -1,6 +1,6 @@
 # Database Migrations
 
-This directory contains SQL migration scripts for the EditConnect database.
+This directory contains SQL migration scripts for the EditFlow database.
 
 ## Schema Files
 

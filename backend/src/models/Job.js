@@ -8,10 +8,12 @@ class Job {
     durationMinutes,
     budgetMin,
     budgetMax,
+    targetEditorId = null,
+    isPrivate = false,
   }) {
     const stmt = db.prepare(`
-      INSERT INTO jobs (client_id, title, description, duration_minutes, budget_min, budget_max)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO jobs (client_id, title, description, duration_minutes, budget_min, budget_max, target_editor_id, is_private)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const info = stmt.run(
@@ -20,7 +22,9 @@ class Job {
       description,
       durationMinutes,
       budgetMin,
-      budgetMax
+      budgetMax,
+      targetEditorId,
+      isPrivate ? 1 : 0
     );
 
     return this.findById(info.lastInsertRowid);
@@ -30,13 +34,35 @@ class Job {
     return db
       .prepare(
         `
-      SELECT jobs.*, users.name AS client_name, users.email AS client_email
+      SELECT jobs.*, users.name AS client_name, users.email AS client_email,
+             te.name AS target_editor_name
       FROM jobs
       JOIN users ON jobs.client_id = users.id
+      LEFT JOIN users te ON jobs.target_editor_id = te.id
       WHERE jobs.id = ?
     `
       )
       .get(id);
+  }
+
+  /**
+   * Find all public jobs OR private jobs targeted at a specific editor
+   * Only shows open jobs (not closed/assigned)
+   */
+  static findAllForEditor(editorId) {
+    return db
+      .prepare(
+        `
+      SELECT jobs.*, users.name AS client_name
+      FROM jobs
+      JOIN users ON jobs.client_id = users.id
+      WHERE jobs.status = 'open'
+        AND ((jobs.is_private = 0 OR jobs.is_private IS NULL)
+             OR jobs.target_editor_id = ?)
+      ORDER BY jobs.created_at DESC
+    `
+      )
+      .all(editorId);
   }
 
   static findAll() {
@@ -46,6 +72,7 @@ class Job {
       SELECT jobs.*, users.name AS client_name
       FROM jobs
       JOIN users ON jobs.client_id = users.id
+      WHERE jobs.status = 'open'
       ORDER BY jobs.created_at DESC
     `
       )

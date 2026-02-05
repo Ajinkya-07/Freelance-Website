@@ -1,9 +1,11 @@
 // src/controllers/jobController.js
 const Job = require("../models/Job");
+const Notification = require("../models/Notification");
+const User = require("../models/User");
 
 async function createJob(req, res) {
   try {
-    const { title, description, duration_minutes, budget_min, budget_max } =
+    const { title, description, duration_minutes, budget_min, budget_max, target_editor_id } =
       req.body;
 
     if (req.user.role !== "client") {
@@ -28,6 +30,9 @@ async function createJob(req, res) {
         .json({ error: "Description must be at least 20 characters" });
     }
 
+    // Check if this is a private job for a specific editor
+    const isPrivate = !!target_editor_id;
+
     const newJob = Job.create({
       clientId: req.user.id,
       title,
@@ -35,7 +40,19 @@ async function createJob(req, res) {
       durationMinutes: duration_minutes || null,
       budgetMin: budget_min || null,
       budgetMax: budget_max || null,
+      targetEditorId: target_editor_id || null,
+      isPrivate
     });
+
+    // If this is a private job, send notification to the target editor
+    if (isPrivate && target_editor_id) {
+      Notification.notifyJobInvitation(
+        target_editor_id,
+        newJob.id,
+        title,
+        req.user.name
+      );
+    }
 
     res.status(201).json({ success: true, job: newJob });
   } catch (err) {
@@ -46,7 +63,20 @@ async function createJob(req, res) {
 
 async function getAllJobs(req, res) {
   try {
-    const jobs = Job.findAll();
+    let jobs;
+    
+    // If user is an editor, show only public jobs + jobs targeted at them
+    if (req.user && req.user.role === 'editor') {
+      jobs = Job.findAllForEditor(req.user.id);
+    } else if (req.user && req.user.role === 'client') {
+      // Clients see public jobs + their own private jobs
+      const allJobs = Job.findAll();
+      jobs = allJobs.filter(j => !j.is_private || j.client_id === req.user.id);
+    } else {
+      // Anonymous or other roles - show public only
+      jobs = Job.findAll().filter(j => !j.is_private);
+    }
+    
     res.json(jobs);
   } catch (err) {
     res.status(500).json({ error: "Internal server error" });

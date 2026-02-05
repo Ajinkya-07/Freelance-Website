@@ -25,8 +25,8 @@ export default function Dashboard() {
 
       setProjects(projectList);
 
-      // Calculate stats - active includes in_progress, under_review, revision_requested, on_hold
-      const activeStatuses = ["in_progress", "under_review", "revision_requested", "on_hold"];
+      // Calculate stats - active includes in_progress, under_review, revision_requested
+      const activeStatuses = ["in_progress", "under_review", "revision_requested"];
       setStats({
         active: projectList.filter(p => activeStatuses.includes(p.status)).length,
         completed: projectList.filter(p => p.status === "completed").length,
@@ -45,7 +45,7 @@ export default function Dashboard() {
       in_progress: { className: "badge-info", text: "Active", icon: "🔵" },
       under_review: { className: "badge-warning", text: "Under Review", icon: "🟡" },
       revision_requested: { className: "badge-warning", text: "Revision", icon: "🔄" },
-      on_hold: { className: "badge-secondary", text: "On Hold", icon: "⏸️" },
+
       completed: { className: "badge-success", text: "Completed", icon: "✅" },
       cancelled: { className: "badge-error", text: "Cancelled", icon: "❌" },
     };

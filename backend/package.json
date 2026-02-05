@@ -1,7 +1,7 @@
 {
-  "name": "@editconnect/backend",
+  "name": "@EditFlow/backend",
   "version": "1.0.0",
-  "description": "Professional REST API for EditConnect freelance marketplace",
+  "description": "Professional REST API for EditFlow freelance marketplace",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -15,7 +15,7 @@
     "api",
     "express"
   ],
-  "author": "EditConnect Team",
+  "author": "EditFlow Team",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"

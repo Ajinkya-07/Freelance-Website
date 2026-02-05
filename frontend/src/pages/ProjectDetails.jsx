@@ -12,14 +12,13 @@ export default function ProjectDetails() {
   const [error, setError] = useState("");
   const [uploadMsg, setUploadMsg] = useState("");
   const [fileType, setFileType] = useState("draft");
+  const [clientFileType, setClientFileType] = useState("raw");
   const [selectedFile, setSelectedFile] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showRevisionModal, setShowRevisionModal] = useState(false);
-  const [showHoldModal, setShowHoldModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [revisionNotes, setRevisionNotes] = useState("");
-  const [holdReason, setHoldReason] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -138,21 +137,9 @@ export default function ProjectDetails() {
     }
   };
 
-  const handlePutOnHold = () => {
-    handleProjectAction("hold", { reason: holdReason });
-    setShowHoldModal(false);
-    setHoldReason("");
-  };
-
-  const handleResume = () => {
-    if (confirm("Resume this project?")) {
-      handleProjectAction("resume");
-    }
-  };
 
 
-
-  // ---------------- UPLOAD ----------------
+  // ---------------- UPLOAD (Editor) ----------------
   async function handleUpload(e) {
     e.preventDefault();
 
@@ -161,6 +148,54 @@ export default function ProjectDetails() {
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("file_type", fileType);
+
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/files/${id}/upload`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setUploadMsg(data.error || "Upload failed");
+        return;
+      }
+
+      setUploadMsg("Upload successful ✅");
+      setSelectedFile(null);
+
+      // refresh file list
+      const filesRes = await fetch(
+        `http://localhost:4000/api/files/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const filesData = await filesRes.json();
+      setFiles(filesData.files || []);
+
+    } catch (err) {
+      console.error(err);
+      setUploadMsg("Upload error");
+    }
+  }
+
+  // ---------------- UPLOAD (Client) ----------------
+  async function handleClientUpload(e) {
+    e.preventDefault();
+
+    if (!selectedFile) return;
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("file_type", clientFileType);
 
     try {
       const res = await fetch(
@@ -236,6 +271,44 @@ export default function ProjectDetails() {
     }
   }
 
+  // ---------------- DELETE FILE ----------------
+  async function handleDeleteFile(fileId, fileName) {
+    if (!confirm(`Delete file "${fileName}"?`)) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/files/${fileId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Delete failed");
+        return;
+      }
+
+      // Refresh file list
+      const filesRes = await fetch(
+        `http://localhost:4000/api/files/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const filesData = await filesRes.json();
+      setFiles(filesData.files || []);
+
+    } catch (err) {
+      console.error(err);
+      alert("Delete error");
+    }
+  }
+
   if (error) {
     return (
       <div style={{ padding: "40px", color: "red" }}>
@@ -263,7 +336,6 @@ export default function ProjectDetails() {
     revision_requested: "#e74c3c",
     completed: "#27ae60",
     cancelled: "#95a5a6",
-    on_hold: "#9b59b6",
   };
 
   const statusLabels = {
@@ -272,7 +344,6 @@ export default function ProjectDetails() {
     revision_requested: "Revision Requested",
     completed: "Completed",
     cancelled: "Cancelled",
-    on_hold: "On Hold",
   };
 
   return (
@@ -325,7 +396,7 @@ export default function ProjectDetails() {
         marginBottom: "20px"
       }}>
         {/* Client Actions */}
-        {isClient && project.status === "under_review" && (
+        {isClient && (project.status === "under_review" || project.status === "revision_requested") && (
           <>
             <button
               onClick={handleComplete}
@@ -340,7 +411,7 @@ export default function ProjectDetails() {
                 fontWeight: "bold",
               }}
             >
-              ✅ Approve & Complete
+              ✅ Accept & Complete
             </button>
             <button
               onClick={() => setShowRevisionModal(true)}
@@ -375,44 +446,6 @@ export default function ProjectDetails() {
             }}
           >
             {actionLoading ? "Submitting..." : "📤 Submit for Review"}
-          </button>
-        )}
-
-        {/* Hold Button - Only for in_progress or revision_requested */}
-        {(project.status === "in_progress" || project.status === "revision_requested") && (
-          <button
-            onClick={() => setShowHoldModal(true)}
-            disabled={actionLoading}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#9b59b6",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: actionLoading ? "not-allowed" : "pointer",
-              opacity: actionLoading ? 0.6 : 1,
-            }}
-          >
-            ⏸️ Put on Hold
-          </button>
-        )}
-
-        {/* Resume Button - Only when on_hold */}
-        {project.status === "on_hold" && (
-          <button
-            onClick={handleResume}
-            disabled={actionLoading}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#3498db",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: actionLoading ? "not-allowed" : "pointer",
-              opacity: actionLoading ? 0.6 : 1,
-            }}
-          >
-            {actionLoading ? "Resuming..." : "▶️ Resume Project"}
           </button>
         )}
 
@@ -510,54 +543,80 @@ export default function ProjectDetails() {
         <div>
           <h3>Files</h3>
           {files.length === 0 && <p>No files uploaded yet.</p>}
-          {files.map((f) => (
-            <div
-              key={f.id}
-              style={{
-                border: "1px solid #ddd",
-                padding: "12px",
-                marginBottom: "8px",
-                borderRadius: "8px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <span style={{ marginRight: "10px" }}>📄</span>
-                <strong>{f.file_name}</strong>
-                <span style={{
-                  marginLeft: "10px",
-                  padding: "2px 8px",
-                  backgroundColor: f.file_type === "final" ? "#27ae60" : "#3498db",
-                  color: "white",
-                  borderRadius: "10px",
-                  fontSize: "12px",
-                }}>
-                  {f.file_type}
-                </span>
-              </div>
-              <button
-                onClick={() => handleDownload(f.id, f.file_name)}
+          {files.map((f) => {
+            const fileTypeColors = {
+              final: "#27ae60",
+              draft: "#3498db",
+              raw: "#9b59b6",
+              source: "#e67e22",
+              reference: "#16a085"
+            };
+            return (
+              <div
+                key={f.id}
                 style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#3498db",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
+                  border: "1px solid #ddd",
+                  padding: "12px",
+                  marginBottom: "8px",
+                  borderRadius: "8px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                 }}
               >
-                Download
-              </button>
-            </div>
-          ))}
+                <div>
+                  <span style={{ marginRight: "10px" }}>📄</span>
+                  <strong>{f.file_name}</strong>
+                  <span style={{
+                    marginLeft: "10px",
+                    padding: "2px 8px",
+                    backgroundColor: fileTypeColors[f.file_type] || "#666",
+                    color: "white",
+                    borderRadius: "10px",
+                    fontSize: "12px",
+                  }}>
+                    {f.file_type}
+                  </span>
+                </div>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => handleDownload(f.id, f.file_name)}
+                    style={{
+                      padding: "8px 16px",
+                      backgroundColor: "#3498db",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Download
+                  </button>
+                  {f.uploaded_by === user?.id && (
+                    <button
+                      onClick={() => handleDeleteFile(f.id, f.file_name)}
+                      style={{
+                        padding: "8px 16px",
+                        backgroundColor: "#e74c3c",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
 
-          {/* Upload Form - Editor Only */}
+          {/* Upload Form - Editor */}
           {isEditor && project.status !== "completed" && project.status !== "cancelled" && (
             <div style={{ marginTop: "20px", padding: "15px", backgroundColor: "#f8f9fa", borderRadius: "8px" }}>
-              <h4>Upload File</h4>
-              <form onSubmit={handleUpload} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <h4>Upload Edited File</h4>
+              <form onSubmit={handleUpload} style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
                 <input
                   type="file"
                   onChange={(e) => setSelectedFile(e.target.files[0])}
@@ -573,6 +632,40 @@ export default function ProjectDetails() {
                 <button type="submit" style={{
                   padding: "8px 16px",
                   backgroundColor: "#27ae60",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                }}>
+                  Upload
+                </button>
+              </form>
+              {uploadMsg && <p style={{ marginTop: "10px" }}>{uploadMsg}</p>}
+            </div>
+          )}
+
+          {/* Upload Form - Client (Raw files) */}
+          {isClient && project.status !== "completed" && project.status !== "cancelled" && (
+            <div style={{ marginTop: "20px", padding: "15px", backgroundColor: "#e8f4f8", borderRadius: "8px" }}>
+              <h4>📤 Upload Raw Files</h4>
+              <p style={{ fontSize: "14px", color: "#666", marginBottom: "10px" }}>Send raw images, videos, or source files to the editor</p>
+              <form onSubmit={handleClientUpload} style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                <input
+                  type="file"
+                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                />
+                <select
+                  value={clientFileType}
+                  onChange={(e) => setClientFileType(e.target.value)}
+                  style={{ padding: "8px" }}
+                >
+                  <option value="raw">Raw File</option>
+                  <option value="source">Source Material</option>
+                  <option value="reference">Reference</option>
+                </select>
+                <button type="submit" style={{
+                  padding: "8px 16px",
+                  backgroundColor: "#3498db",
                   color: "white",
                   border: "none",
                   borderRadius: "5px",
@@ -766,62 +859,6 @@ export default function ProjectDetails() {
                 }}
               >
                 {actionLoading ? "Sending..." : "Request Revision"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Hold Modal */}
-      {showHoldModal && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1000,
-        }}>
-          <div style={{
-            backgroundColor: "white",
-            padding: "30px",
-            borderRadius: "10px",
-            maxWidth: "400px",
-            width: "90%",
-          }}>
-            <h3 style={{ margin: "0 0 15px" }}>Put Project on Hold</h3>
-            <p>This will pause all work on the project. You can resume it later.</p>
-            <textarea
-              placeholder="Reason for putting on hold (optional)"
-              value={holdReason}
-              onChange={(e) => setHoldReason(e.target.value)}
-              style={{ width: "100%", padding: "10px", marginBottom: "15px", minHeight: "80px" }}
-            />
-            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-              <button
-                onClick={() => { setShowHoldModal(false); setHoldReason(""); }}
-                style={{ padding: "10px 20px", cursor: "pointer" }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handlePutOnHold}
-                disabled={actionLoading}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#9b59b6",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: actionLoading ? "not-allowed" : "pointer",
-                  opacity: actionLoading ? 0.6 : 1,
-                }}
-              >
-                {actionLoading ? "Putting on Hold..." : "Put on Hold"}
               </button>
             </div>
           </div>

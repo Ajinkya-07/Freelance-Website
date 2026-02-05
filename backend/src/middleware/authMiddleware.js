@@ -72,4 +72,31 @@ function requireRole(...roles) {
   };
 }
 
-module.exports = { authRequired, requireRole };
+/**
+ * Optional authentication middleware
+ * Attaches user to req if valid token exists, but doesn't require it
+ */
+function authOptional(req, res, next) {
+  const authHeader = req.headers.authorization || "";
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme === "Bearer" && token) {
+    try {
+      const payload = jwt.verify(token, config.jwt.secret);
+      const user = User.findById(payload.userId);
+      if (user) {
+        req.user = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        };
+      }
+    } catch (err) {
+      // Token invalid or expired - continue without user
+    }
+  }
+  next();
+}
+
+module.exports = { authRequired, requireRole, authOptional };

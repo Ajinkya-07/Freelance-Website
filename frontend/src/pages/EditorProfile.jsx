@@ -58,19 +58,18 @@ export default function EditorProfile() {
 
         setHireLoading(true);
         try {
-            // Create a job specifically for this editor
+            // Create a private job specifically for this editor
             const jobResponse = await api.post("/jobs", {
                 title: hireForm.title,
-                description: hireForm.description + `\n\n[Direct hire for editor: ${profile.name}]`,
+                description: hireForm.description,
                 budget_min: parseInt(hireForm.budget) || 0,
                 budget_max: parseInt(hireForm.budget) || 0,
+                target_editor_id: parseInt(editorId) // Make this a private job for this specific editor
             });
 
             const jobId = jobResponse.data.job?.id || jobResponse.data.id;
 
-            // Send a notification/message to the editor (via proposal invite concept)
-            // For now, just redirect to the job
-            alert(`Job created successfully! The editor "${profile.name}" can now view and apply to your job.`);
+            alert(`Job invitation sent to "${profile.name}"! They will receive a notification and can submit a proposal.`);
             setShowHireModal(false);
             setHireForm({ title: "", description: "", budget: "", message: "" });
             navigate(`/jobs/${jobId}`);

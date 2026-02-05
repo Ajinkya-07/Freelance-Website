@@ -1,7 +1,7 @@
 const express = require('express');
 const upload = require('../config/multer');
 const { authRequired } = require('../middleware/authMiddleware');
-const { uploadFile, getProjectFiles, downloadFile } = require('../controllers/fileController');
+const { uploadFile, getProjectFiles, downloadFile, deleteFile } = require('../controllers/fileController');
 
 
 const router = express.Router();
@@ -29,5 +29,8 @@ router.get(
   authRequired,
   downloadFile
 );
+
+// Delete file
+router.delete('/:fileId', authRequired, deleteFile);
 
 module.exports = router;

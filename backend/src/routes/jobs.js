@@ -1,6 +1,6 @@
 // src/routes/jobs.js
 const express = require("express");
-const { authRequired } = require("../middleware/authMiddleware");
+const { authRequired, authOptional } = require("../middleware/authMiddleware");
 const {
   createJob,
   getAllJobs,
@@ -10,9 +10,9 @@ const {
 
 const router = express.Router();
 
-router.get("/search", searchJobs); // search and filter jobs
+router.get("/search", authOptional, searchJobs); // search and filter jobs
 router.post("/", authRequired, createJob); // create a job
-router.get("/", getAllJobs); // list all jobs
+router.get("/", authOptional, getAllJobs); // list all jobs - authOptional to identify user
 router.get("/:id", getJobById); // job details
 
 module.exports = router;

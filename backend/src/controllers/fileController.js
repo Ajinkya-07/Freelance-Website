@@ -27,7 +27,8 @@ async function uploadFile(req, res) {
       });
     }
 
-    if (!['draft', 'final'].includes(file_type)) {
+    const validFileTypes = ['draft', 'final', 'raw', 'source', 'reference'];
+    if (!validFileTypes.includes(file_type)) {
       return res.status(400).json({ error: 'Invalid file type' });
     }
 
@@ -36,8 +37,23 @@ async function uploadFile(req, res) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (req.user.id !== project.editor_id) {
-      return res.status(403).json({ error: 'Only editor can upload files' });
+    // Editors can upload draft/final, Clients can upload raw/source/reference
+    const isEditor = req.user.id === project.editor_id;
+    const isClient = req.user.id === project.client_id;
+    
+    if (!isEditor && !isClient) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const editorTypes = ['draft', 'final'];
+    const clientTypes = ['raw', 'source', 'reference'];
+
+    if (isEditor && !editorTypes.includes(file_type)) {
+      return res.status(400).json({ error: 'Editors can only upload draft or final files' });
+    }
+
+    if (isClient && !clientTypes.includes(file_type)) {
+      return res.status(400).json({ error: 'Clients can only upload raw, source, or reference files' });
     }
 
     const savedFile = await ProjectFile.create({
@@ -49,8 +65,15 @@ async function uploadFile(req, res) {
     });
 
     // Log the file upload activity
+    const typeLabels = {
+      draft: 'Draft',
+      final: 'Final',
+      raw: 'Raw',
+      source: 'Source',
+      reference: 'Reference'
+    };
     logActivity(projectId, req.user.id, 'file_uploaded',
-      `${file_type === 'final' ? 'Final' : 'Draft'} file uploaded: ${file.originalname}`,
+      `${typeLabels[file_type]} file uploaded: ${file.originalname}`,
       { fileId: savedFile.id, fileName: file.originalname, fileType: file_type }
     );
 
@@ -146,8 +169,56 @@ async function downloadFile(req, res) {
 }
 
 
+// ===============================
+// DELETE FILE
+// ===============================
+async function deleteFile(req, res) {
+  try {
+    const { fileId } = req.params;
+
+    const file = await ProjectFile.findById(fileId);
+
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    const project = await Project.findById(file.project_id);
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // Only the uploader can delete their file
+    if (req.user.id !== file.uploaded_by) {
+      return res.status(403).json({ error: 'Only the uploader can delete this file' });
+    }
+
+    // Delete from disk
+    if (fs.existsSync(file.file_path)) {
+      fs.unlinkSync(file.file_path);
+    }
+
+    // Delete from database
+    await ProjectFile.delete(fileId);
+
+    // Log the activity
+    logActivity(file.project_id, req.user.id, 'file_deleted',
+      `File deleted: ${file.file_name}`,
+      { fileName: file.file_name, fileType: file.file_type }
+    );
+
+    return res.status(200).json({ message: 'File deleted successfully' });
+
+  } catch (err) {
+    console.error('DELETE FILE ERROR:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
 module.exports = {
   uploadFile,
   getProjectFiles,
-  downloadFile
+  downloadFile,
+  deleteFile
 };

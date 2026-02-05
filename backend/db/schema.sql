@@ -1,7 +1,7 @@
--- EditConnect Database Schema
+-- EditFlow Database Schema
 -- SQLite3 Migration Script
 -- Version: 1.0.0
--- Description: Initial database schema for EditConnect freelance marketplace
+-- Description: Initial database schema for EditFlow freelance marketplace
 
 -- Enable foreign keys
 PRAGMA foreign_keys = ON;

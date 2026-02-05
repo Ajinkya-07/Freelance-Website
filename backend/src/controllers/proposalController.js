@@ -111,6 +111,9 @@ async function acceptProposal(req, res) {
 
     Proposal.markAccepted(proposalId);
     Proposal.rejectOthers(job.id);
+    
+    // Close the job so it no longer appears in listings
+    Job.updateStatus(job.id, 'closed');
 
     res.json({
       message: "Proposal accepted",

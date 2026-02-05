@@ -1,10 +1,10 @@
 {
-  "name": "@editconnect/frontend",
+  "name": "@EditFlow/frontend",
   "private": true,
   "version": "1.0.0",
-  "description": "Modern React frontend for EditConnect marketplace",
+  "description": "Modern React frontend for EditFlow marketplace",
   "type": "module",
-  "author": "EditConnect Team",
+  "author": "EditFlow Team",
   "license": "MIT",
   "scripts": {
     "dev": "vite",

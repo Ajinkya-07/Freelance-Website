@@ -205,7 +205,7 @@ Open browser and visit:
 If issues persist:
 - Check GitHub Issues
 - Review error logs in npm-debug.log
-- Contact: support@editconnect.com
+- Contact: support@EditFlow.com
 
 ---
 

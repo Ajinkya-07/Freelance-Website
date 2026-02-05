@@ -124,7 +124,7 @@ class Portfolio {
     const statsStmt = db.prepare(`
       SELECT 
         (SELECT COUNT(*) FROM projects WHERE editor_id = ? AND status = 'completed') as completed_projects,
-        (SELECT COUNT(*) FROM proposals WHERE editor_id = ?) as total_proposals,
+        (SELECT COUNT(*) FROM projects WHERE editor_id = ?) as total_projects,
         (SELECT COUNT(*) FROM proposals WHERE editor_id = ? AND status = 'accepted') as accepted_proposals
     `);
     const stats = statsStmt.get(editorId, editorId, editorId);
@@ -134,10 +134,11 @@ class Portfolio {
       portfolio: portfolioItems,
       stats: {
         completedProjects: stats.completed_projects || 0,
-        totalProposals: stats.total_proposals || 0,
+        totalProjects: stats.total_projects || 0,
         acceptedProposals: stats.accepted_proposals || 0,
-        successRate: stats.total_proposals > 0 
-          ? Math.round((stats.accepted_proposals / stats.total_proposals) * 100) 
+        // Success Rate = Completed Projects / Total Projects Assigned
+        successRate: stats.total_projects > 0 
+          ? Math.round((stats.completed_projects / stats.total_projects) * 100) 
           : 0
       }
     };

@@ -1,4 +1,4 @@
-# EditConnect Backend API
+# EditFlow Backend API
 
 A professional RESTful API for a freelance marketplace connecting clients with video editors and content creators.
 
@@ -290,9 +290,9 @@ For bug reports, please create an issue on GitHub with:
 ## 📞 Support
 
 For support and questions, please contact:
-- Email: support@editconnect.com
+- Email: support@EditFlow.com
 - GitHub Issues: [Project Issues](<repository-url>/issues)
 
 ---
 
-Built with ❤️ by the EditConnect Team
+Built with ❤️ by the EditFlow Team

@@ -1,6 +1,6 @@
-# EditConnect Frontend
+# EditFlow Frontend
 
-A modern, professional React-based frontend for the EditConnect freelance marketplace platform.
+A modern, professional React-based frontend for the EditFlow freelance marketplace platform.
 
 ## 📋 Table of Contents
 

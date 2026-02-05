@@ -9,8 +9,6 @@ const {
   requestRevision,
   completeProject,
   cancelProject,
-  putOnHold,
-  resumeProject,
   getProjectActivity,
   getMyRecentActivity,
   getProjectProgress,
@@ -41,7 +39,5 @@ router.post("/:id/submit-for-review", submitForReview);
 router.post("/:id/request-revision", requestRevision);
 router.post("/:id/complete", completeProject);
 router.post("/:id/cancel", cancelProject);
-router.post("/:id/hold", putOnHold);
-router.post("/:id/resume", resumeProject);
 
 module.exports = router;

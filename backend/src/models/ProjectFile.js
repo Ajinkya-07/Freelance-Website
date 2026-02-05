@@ -1,64 +1,39 @@
-const db = require('../db/db');
+const db = require('../config/db');
 
 
 class ProjectFile {
 
   static create({ projectId, uploadedBy, fileType, fileName, filePath }) {
-    return new Promise((resolve, reject) => {
-
-      const sql = `
-        INSERT INTO project_files
-        (project_id, uploaded_by, file_type, file_name, file_path)
-        VALUES (?, ?, ?, ?, ?)
-      `;
-
-      db.run(
-        sql,
-        [projectId, uploadedBy, fileType, fileName, filePath],
-        function (err) {
-          if (err) return reject(err);
-
-          ProjectFile.findById(this.lastID)
-            .then(resolve)
-            .catch(reject);
-        }
-      );
-    });
+    const stmt = db.prepare(`
+      INSERT INTO project_files
+      (project_id, uploaded_by, file_type, file_name, file_path)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    
+    const info = stmt.run(projectId, uploadedBy, fileType, fileName, filePath);
+    return this.findById(info.lastInsertRowid);
   }
 
 
   static findById(id) {
-    return new Promise((resolve, reject) => {
-
-      db.get(
-        `SELECT * FROM project_files WHERE id = ?`,
-        [id],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
+    return db.prepare(`SELECT * FROM project_files WHERE id = ?`).get(id);
   }
 
 
   static findByProject(projectId) {
-    return new Promise((resolve, reject) => {
+    return db.prepare(`
+      SELECT *
+      FROM project_files
+      WHERE project_id = ?
+      ORDER BY created_at DESC
+    `).all(projectId);
+  }
 
-      db.all(
-        `
-        SELECT *
-        FROM project_files
-        WHERE project_id = ?
-        ORDER BY created_at DESC
-        `,
-        [projectId],
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
-        }
-      );
-    });
+
+  static delete(id) {
+    const stmt = db.prepare(`DELETE FROM project_files WHERE id = ?`);
+    const info = stmt.run(id);
+    return { deleted: info.changes > 0 };
   }
 }
 

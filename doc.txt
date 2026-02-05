@@ -2,7 +2,7 @@ Make a professional project documentation based on the context of the code that 
 
 Table of Contents
 
-1.Introduction
+1)Introduction
 1.1)Introduction to the project
 1.2)Objective of the Project
 1.3)Limitations of Existing System
@@ -39,3 +39,7 @@ Table of Contents
 7)Future Enhancements
 8)Conclusion
 9)Bibliography
+
+Clear the database table to freshly test the website after 
+it add the admin username and password as admin the database 
+also guide me how to login as admin

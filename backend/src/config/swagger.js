@@ -4,13 +4,13 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'EditConnect API',
+      title: 'EditFlow API',
       version: '1.0.0',
       description:
         'A professional freelance marketplace connecting clients with editors and video professionals',
       contact: {
         name: 'API Support',
-        email: 'support@editconnect.com',
+        email: 'support@EditFlow.com',
       },
       license: {
         name: 'MIT',
@@ -23,7 +23,7 @@ const options = {
         description: 'Development server',
       },
       {
-        url: 'https://api.editconnect.com/api',
+        url: 'https://api.EditFlow.com/api',
         description: 'Production server',
       },
     ],

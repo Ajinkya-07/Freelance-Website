@@ -64,7 +64,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // API Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: "EditConnect API Documentation",
+  customSiteTitle: "EditFlow API Documentation",
 }));
 
 // Health check endpoint
